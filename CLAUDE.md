@@ -17,8 +17,9 @@ Current state: Milestone 1 in progress. Done so far:
 - The scaffold, title screen and deploy pipeline.
 - The canvas field, shown on a preview page at `/#/field`.
 - The rules engine (`src/sim/possession.ts`).
+- The CPU man defense AI (`src/sim/defense.ts`).
 
-Next: the CPU man defense AI, then wiring a `requestAnimationFrame` game loop into the preview page.
+Next: wire a `requestAnimationFrame` game loop into the preview page.
 
 ## Commands
 
@@ -42,6 +43,9 @@ The core rule: **game logic in `src/sim/` is plain TypeScript with no React, DOM
   - `possession.ts` is the rules engine. **One possession ends at a goal or a turnover**, since the CPU never plays offense. State is a mutable `GameState`, advanced by `step(state, dt)`.
   - Commands go in (`throwTo`, `setTarget`, and later `callCut` and `callForDisc`). Typed `SimEvent`s come out (`throw`, `completion`, `goal`, and `turnover` with a `reason`: `drop`, `incomplete`, `block`, `interception`, `handblock`, `out`, `caught_out` or `stall`). The UI reads them with `drainEvents`.
   - Randomness goes through the injected `state.rng` (seeded by default). Tests pass a constant rng to force outcomes. For example, `() => 0.5` means no blocks, no interceptions and every catch made. Tunable probabilities live in `ODDS`, rules in `RULES`, speeds in `SPEED`.
+  - `defense.ts` is the CPU man defense. It only sets defender targets, and the rules engine decides outcomes.
+    - Each frame, call `updateDefense(ai, state, dt)` before `step(state, dt)`.
+    - Downfield defenders re-read their player only every 0.18–0.34 s. That delay is deliberate: it's what lets sharp cuts get open. Tuning lives in `DEFENSE`.
   - Position history for turnover replays is planned.
 - `src/render/`: canvas drawing of sim state, including camera transforms for the Sky and Handler views, and overlays (open/break shading, cut paths, throw preview, vision cone). Views are rendering-only and never change the sim.
 - `src/input/`: mouse, touch, keyboard and joystick input translated into sim commands.
