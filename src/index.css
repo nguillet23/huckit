@@ -103,6 +103,99 @@ footer {
   margin-top: 32px;
 }
 
-footer a {
+footer a,
+.preview-header a {
   color: var(--accent);
+}
+
+/* Field preview (temporary Milestone 1 page) */
+
+.preview {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.preview-header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.preview-header h1 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.field-canvas {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.field-canvas canvas {
+  display: block;
+  width: 100%;
+}
+
+.preview-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.preview-controls fieldset {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.preview-controls legend {
+  padding: 0 4px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.preview-controls button {
+  padding: 6px 12px;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.preview-controls button[aria-pressed='true'] {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.preview-note {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.swatch {
+  display: inline-block;
+  width: 0.8em;
+  height: 0.8em;
+  margin: 0 4px 0 8px;
+  vertical-align: -0.05em;
+  border-radius: 50%;
+}
+
+.swatch.offense {
+  margin-left: 0;
+  background: #2f6fd6;
+}
+
+.swatch.defense {
+  background: #d64545;
 }
