@@ -3,8 +3,8 @@ import { Link } from 'react-router';
 import { FieldCanvas } from '../components/FieldCanvas';
 import type { Point } from '../sim/field';
 import { verticalStack, type Direction } from '../sim/lineups';
-
-type Force = 'forehand' | 'backhand';
+import { openSide } from '../sim/possession';
+import type { Force } from '../sim/types';
 
 /**
  * Temporary Milestone 1 page: a static vertical stack on the field, used to
@@ -14,8 +14,7 @@ export function FieldPreviewPage() {
   const [attackDir, setAttackDir] = useState<Direction>(1);
   const [force, setForce] = useState<Force>('forehand');
 
-  // A right-handed thrower facing +x has their forehand side toward +y.
-  const forceSide: Direction = force === 'forehand' ? attackDir : (-attackDir as Direction);
+  const forceSide = openSide(attackDir, force);
   const disc = useMemo<Point>(() => ({ x: attackDir === 1 ? 35 : 75, y: 24 }), [attackDir]);
   const players = useMemo(() => verticalStack(disc, attackDir, forceSide), [disc, attackDir, forceSide]);
 

@@ -13,7 +13,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Three modes on the title screen:** Lessons, Play (Quarterback and Player control modes) and Whiteboard. **Two camera views:** Sky (whole field) and Handler (flat, rotated so the attack direction is up, following the thrower).
 - **Art:** whiteboard-style dots first. Keep drawing code swappable for a later pixel-art skin.
 
-Current state: Milestone 1 in progress. The scaffold, title screen, deploy pipeline and `src/sim/field.ts` exist. The canvas field, the logic core and the CPU defense are next.
+Current state: Milestone 1 in progress. Done so far:
+- The scaffold, title screen and deploy pipeline.
+- The canvas field, shown on a preview page at `/#/field`.
+- The rules engine (`src/sim/possession.ts`).
+
+Next: the CPU man defense AI, then wiring a `requestAnimationFrame` game loop into the preview page.
 
 ## Commands
 
@@ -33,7 +38,11 @@ CI (`.github/workflows/deploy.yml`) runs `npm ci → lint → test → build` on
 
 The core rule: **game logic in `src/sim/` is plain TypeScript with no React, DOM or canvas imports**, so it runs headlessly under Vitest and is shared by every mode. Planned layering (see PLAN.md §8). Only `sim/` and `App.tsx` exist so far:
 
-- `src/sim/`: game state, rules, CPU man defense, AI cutters and throwers. It takes **commands** in (`throwTo`, `callCut`, `movePlayer`, `callForDisc`) and emits an **event stream** out (`completion`, `drop`, `block`, `interception`, `handblock`, `out`, `caught_out`, `stall`, `brick`, `goal`, `possession_end`, …). It also records position history for turnover replays.
+- `src/sim/`: game state, rules, CPU man defense, AI cutters and throwers.
+  - `possession.ts` is the rules engine. **One possession ends at a goal or a turnover**, since the CPU never plays offense. State is a mutable `GameState`, advanced by `step(state, dt)`.
+  - Commands go in (`throwTo`, `setTarget`, and later `callCut` and `callForDisc`). Typed `SimEvent`s come out (`throw`, `completion`, `goal`, and `turnover` with a `reason`: `drop`, `incomplete`, `block`, `interception`, `handblock`, `out`, `caught_out` or `stall`). The UI reads them with `drainEvents`.
+  - Randomness goes through the injected `state.rng` (seeded by default). Tests pass a constant rng to force outcomes. For example, `() => 0.5` means no blocks, no interceptions and every catch made. Tunable probabilities live in `ODDS`, rules in `RULES`, speeds in `SPEED`.
+  - Position history for turnover replays is planned.
 - `src/render/`: canvas drawing of sim state, including camera transforms for the Sky and Handler views, and overlays (open/break shading, cut paths, throw preview, vision cone). Views are rendering-only and never change the sim.
 - `src/input/`: mouse, touch, keyboard and joystick input translated into sim commands.
 - `src/components/` and `src/pages/`: React UI. Routing uses React Router with a **`HashRouter`** (`/#/lessons/s1`), because GitHub Pages can't serve SPA deep links.
