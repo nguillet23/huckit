@@ -5,6 +5,9 @@ import { applyCamera, SKY_ASPECT, skyCamera } from '../render/camera';
 import { drawField, FIELD_COLORS } from '../render/drawField';
 import { drawDisc, drawPlayers } from '../render/drawPlayers';
 
+/** The field canvas may use up to this fraction of the window's height. */
+const VIEWPORT_SHARE = 0.75;
+
 function nearestDefender(players: readonly PlayerSpot[], p: Point): Point | undefined {
   let best: Point | undefined;
   let bestD = Infinity;
@@ -37,9 +40,11 @@ export function FieldCanvas({ players, disc, label }: FieldCanvasProps) {
     if (!wrap || !canvas || !ctx) return;
 
     const draw = () => {
-      const width = wrap.clientWidth;
+      // As wide as the container allows, but no taller than VIEWPORT_SHARE of the window.
+      const width = Math.min(wrap.clientWidth, window.innerHeight * VIEWPORT_SHARE * SKY_ASPECT);
       const height = width / SKY_ASPECT;
       const dpr = window.devicePixelRatio || 1;
+      canvas.style.width = `${width}px`;
       canvas.style.height = `${height}px`;
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
@@ -57,7 +62,11 @@ export function FieldCanvas({ players, disc, label }: FieldCanvasProps) {
     draw();
     const observer = new ResizeObserver(draw);
     observer.observe(wrap);
-    return () => observer.disconnect();
+    window.addEventListener('resize', draw);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', draw);
+    };
   }, [players, disc]);
 
   return (

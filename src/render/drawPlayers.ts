@@ -6,29 +6,36 @@ export const TEAM_COLORS = {
   defense: '#d64545',
 } as const;
 
-const PLAYER_RADIUS = 0.85;
-const DISC_RADIUS = 0.45;
+// Dots are drawn larger than a real player's footprint so they read clearly at
+// full-field zoom; tightly guarded matchups overlap slightly.
+const PLAYER_RADIUS = 1.15;
+const DISC_RADIUS = 0.65;
 
-/** Whiteboard-style dots: a filled circle per player with their number. Call after applyCamera. */
+/**
+ * Whiteboard-style dots: a filled circle per player with their number. Call after applyCamera.
+ * Defenders are drawn first so offensive players stay on top, and every number is
+ * drawn after all the circles so overlapping matchups never hide one.
+ */
 export function drawPlayers(ctx: CanvasRenderingContext2D, players: readonly PlayerSpot[]): void {
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.font = '700 1px system-ui, sans-serif';
-  for (const p of players) {
+  const ordered = [...players].sort((a, b) => Number(a.side === 'offense') - Number(b.side === 'offense'));
+  ctx.lineWidth = 0.18;
+  ctx.strokeStyle = '#ffffff';
+  for (const p of ordered) {
     ctx.beginPath();
     ctx.arc(p.pos.x, p.pos.y, PLAYER_RADIUS, 0, Math.PI * 2);
     ctx.fillStyle = TEAM_COLORS[p.side];
     ctx.fill();
-    ctx.lineWidth = 0.15;
-    ctx.strokeStyle = '#ffffff';
     ctx.stroke();
-
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(String(p.number), p.pos.x, p.pos.y + 0.05);
   }
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = `700 ${PLAYER_RADIUS * 1.25}px system-ui, sans-serif`;
+  ctx.fillStyle = '#ffffff';
+  for (const p of ordered) ctx.fillText(String(p.number), p.pos.x, p.pos.y + 0.07);
 }
 
-const DISC_OFFSET = 1.0;
+const DISC_OFFSET = PLAYER_RADIUS + 0.35;
 
 /**
  * The disc, drawn just off the holder's hand with a small shadow. Pass `awayFrom`
@@ -45,7 +52,7 @@ export function drawDisc(ctx: CanvasRenderingContext2D, pos: Point, awayFrom?: P
   const x = pos.x + dx;
   const y = pos.y + dy;
   ctx.beginPath();
-  ctx.ellipse(x + 0.15, y + 0.2, DISC_RADIUS, DISC_RADIUS * 0.7, 0, 0, Math.PI * 2);
+  ctx.ellipse(x + 0.2, y + 0.28, DISC_RADIUS, DISC_RADIUS * 0.7, 0, 0, Math.PI * 2);
   ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
   ctx.fill();
 
@@ -53,7 +60,7 @@ export function drawDisc(ctx: CanvasRenderingContext2D, pos: Point, awayFrom?: P
   ctx.arc(x, y, DISC_RADIUS, 0, Math.PI * 2);
   ctx.fillStyle = '#ffffff';
   ctx.fill();
-  ctx.lineWidth = 0.08;
+  ctx.lineWidth = 0.12;
   ctx.strokeStyle = '#1d2a1f';
   ctx.stroke();
 }
