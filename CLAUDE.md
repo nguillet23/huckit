@@ -13,13 +13,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Three modes on the title screen:** Lessons, Play (Quarterback and Player control modes) and Whiteboard. **Two camera views:** Sky (whole field) and Handler (flat, rotated so the attack direction is up, following the thrower).
 - **Art:** whiteboard-style dots first. Keep drawing code swappable for a later pixel-art skin.
 
-Current state: Milestone 1 in progress. Done so far:
-- The scaffold, title screen and deploy pipeline.
-- The canvas field, shown on a preview page at `/#/field`.
-- The rules engine (`src/sim/possession.ts`).
-- The CPU man defense AI (`src/sim/defense.ts`).
+Current state: **Milestone 1 is complete.** `/#/field` is a live possession: you click to throw against the CPU man defense, and the page shows the stall count, pause, and a play-by-play log.
 
-Next: wire a `requestAnimationFrame` game loop into the preview page.
+Next is Milestone 2, Quarterback mode:
+- AI cutters (under and deep cuts, clearing).
+- Leading passes to moving receivers.
+- Drag a cutter to call a cut.
+- Possession setup options and stats, coach cards, turnover replays.
 
 ## Commands
 
@@ -52,7 +52,9 @@ The core rule: **game logic in `src/sim/` is plain TypeScript with no React, DOM
 - `src/components/` and `src/pages/`: React UI. Routing uses React Router with a **`HashRouter`** (`/#/lessons/s1`), because GitHub Pages can't serve SPA deep links.
 - `src/lessons/`: lessons as data files (text cards, scripted moves, challenge, star thresholds).
 
-**React and the game loop:** sim state lives in a `useRef`, and a `requestAnimationFrame` loop inside the field-canvas component steps the sim and draws directly. Only push into React state when the HUD needs to change (sim events, stall ticks, pause). Never re-render React every frame.
+**React and the game loop:** `src/sim/game.ts` bundles a possession with the CPU defense. `advance(game, seconds)` runs fixed 1/60 s steps (the defense AI, then `step`), carrying any remainder, so behavior doesn't depend on frame rate.
+
+`components/GameCanvas.tsx` holds the `Game` in a ref and runs a `requestAnimationFrame` loop. Each frame it advances the game, drains events, calls `onFrame`, and draws via `render/drawGame.ts`. Pages pass callbacks that only `setState` when something visible changed (see `sameHud` in `FieldPreviewPage`). Never re-render React every frame. Clicks are converted to field yards with `screenToField`. Play-by-play text lives in `src/content/eventText.ts`.
 
 **Coordinates:** yards. `x` runs 0–110 along the length (endzones are 0–20 and 90–110), and `y` runs 0–40 across the width. Each team's attack direction is +1 or −1. Use the constants in `src/sim/field.ts` rather than hard-coding numbers.
 

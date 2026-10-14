@@ -1,4 +1,4 @@
-import { FIELD } from '../sim/field';
+import { FIELD, type Point } from '../sim/field';
 
 /** Grass shown around the field so the sidelines aren't flush with the canvas edge, in yards. */
 export const VIEW_MARGIN = 3;
@@ -21,6 +21,11 @@ export function skyCamera(width: number, height: number): Camera {
     offsetX: (width - FIELD.length * scale) / 2,
     offsetY: (height - FIELD.width * scale) / 2,
   };
+}
+
+/** Convert a CSS-pixel position on the canvas (e.g. a click) to field yards. */
+export function screenToField(cam: Camera, x: number, y: number): Point {
+  return { x: (x - cam.offsetX) / cam.scale, y: (y - cam.offsetY) / cam.scale };
 }
 
 /** After this, drawing calls take coordinates in yards. */

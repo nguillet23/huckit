@@ -37,22 +37,36 @@ export function drawPlayers(ctx: CanvasRenderingContext2D, players: readonly Pla
 
 const DISC_OFFSET = PLAYER_RADIUS + 0.35;
 
-/**
- * The disc, drawn just off the holder's hand with a small shadow. Pass `awayFrom`
- * (usually the marker) to keep the disc on the holder's far side so it isn't hidden.
- */
-export function drawDisc(ctx: CanvasRenderingContext2D, pos: Point, awayFrom?: Point): void {
-  let dx = 0.7;
-  let dy = -0.7;
-  if (awayFrom) {
-    const len = Math.hypot(pos.x - awayFrom.x, pos.y - awayFrom.y) || 1;
-    dx = ((pos.x - awayFrom.x) / len) * DISC_OFFSET;
-    dy = ((pos.y - awayFrom.y) / len) * DISC_OFFSET;
+/** How far up the screen a yard of height lifts the disc, to sell the arc of a throw. */
+const HEIGHT_LIFT = 0.45;
+
+interface DiscDrawOptions {
+  /** The disc is held: draw it just off the holder's hand, on the far side from this point (the marker). */
+  awayFrom?: Point;
+  /** The disc is in the air at this height (yards): lift it off its ground shadow. */
+  height?: number;
+}
+
+/** The disc with its shadow on the ground. */
+export function drawDisc(ctx: CanvasRenderingContext2D, pos: Point, opts: DiscDrawOptions = {}): void {
+  let x = pos.x;
+  let y = pos.y;
+  let shadowX = x + 0.2;
+  let shadowY = y + 0.28;
+  if (opts.awayFrom) {
+    const len = Math.hypot(pos.x - opts.awayFrom.x, pos.y - opts.awayFrom.y) || 1;
+    x += ((pos.x - opts.awayFrom.x) / len) * DISC_OFFSET;
+    y += ((pos.y - opts.awayFrom.y) / len) * DISC_OFFSET;
+    shadowX = x + 0.2;
+    shadowY = y + 0.28;
+  } else if (opts.height) {
+    shadowX = pos.x;
+    shadowY = pos.y;
+    y -= opts.height * HEIGHT_LIFT;
   }
-  const x = pos.x + dx;
-  const y = pos.y + dy;
+
   ctx.beginPath();
-  ctx.ellipse(x + 0.2, y + 0.28, DISC_RADIUS, DISC_RADIUS * 0.7, 0, 0, Math.PI * 2);
+  ctx.ellipse(shadowX, shadowY, DISC_RADIUS, DISC_RADIUS * 0.7, 0, 0, Math.PI * 2);
   ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
   ctx.fill();
 
